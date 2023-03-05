@@ -1,10 +1,10 @@
 {
   "name": "@highflying/circuit-cube",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Javascript module to interface with LEGO Powered Up components.",
   "homepage": "https://github.com/highflying/circuit-cube",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/main.d.ts",
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "tsc",
