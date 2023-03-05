@@ -5,4 +5,4 @@ import { CircuitCubeDiscoverer } from "./discoverer";
 import { CircuitCube } from "./circuitcube";
 
 export default CircuitCubeDiscoverer;
-export { CircuitCubeDiscoverer as PoweredUP, CircuitCube, Consts };
+export { CircuitCubeDiscoverer, CircuitCube, Consts };

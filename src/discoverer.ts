@@ -7,16 +7,22 @@ import * as Consts from "./consts";
 import { EventEmitter } from "events";
 
 import Debug = require("debug");
-const debug = Debug("poweredup");
+const debug = Debug("circuitcube:discoverer");
 import noble = require("@abandonware/noble");
 import { CircuitCube } from "./circuitcube";
 
 let ready = false;
 let wantScan = false;
 
-const startScanning = () => {
-  noble.startScanning([Consts.BLEService.CIRCUIT_CUBE_1]);
-};
+const startScanning = () =>
+  noble.startScanningAsync([
+    Consts.BLEService.CIRCUIT_CUBE_1,
+    // so that node-powered up still works
+    "00001523-1212-efde-1523-785feabcd123",
+    "000015231212efde1523785feabcd123",
+    "00001623-1212-efde-1623-785feabcd123",
+    "000016231212efde1623785feabcd123",
+  ]);
 
 noble.on("stateChange", (state: string) => {
   ready = state === "poweredOn";
@@ -57,7 +63,6 @@ export class CircuitCubeDiscoverer extends EventEmitter {
 
   public stop() {
     wantScan = false;
-    // @ts-ignore
     noble.removeListener("discover", this._discoveryEventHandler);
     noble.stopScanning();
   }

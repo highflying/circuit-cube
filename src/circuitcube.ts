@@ -4,12 +4,12 @@ import * as Consts from "./consts";
 
 import Debug = require("debug");
 import { NobleDevice } from "./nobleabstraction";
-const debug = Debug("hub");
+const debug = Debug("circuitcube:hub");
 
 export class CircuitCube extends EventEmitter {
   private _timer: NodeJS.Timeout | undefined;
-  protected _name: string = "";
-  protected _batteryLevel: number = 100;
+  protected _name = "";
+  protected _batteryLevel = 100;
   protected _bleDevice: NobleDevice;
 
   public static IsCircuitCube(peripheral: Peripheral) {
