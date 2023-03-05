@@ -8,16 +8,12 @@ export class NobleDevice extends EventEmitter {
   private _noblePeripheral: Peripheral;
 
   private _uuid: string;
-  private _name: string = "";
+  private _name = "";
 
-  private _listeners: { [uuid: string]: any } = {};
   private _characteristics: { [uuid: string]: Characteristic } = {};
 
-  private _queue: Promise<any> = Promise.resolve();
-  private _mailbox: Buffer[] = [];
-
-  private _connected: boolean = false;
-  private _connecting: boolean = false;
+  private _connected = false;
+  private _connecting = false;
 
   constructor(device: any) {
     super();
@@ -90,7 +86,7 @@ export class NobleDevice extends EventEmitter {
           services.forEach((service) => {
             servicePromises.push(
               new Promise((resolve) => {
-                service.discoverCharacteristics([], (err, characteristics) => {
+                service.discoverCharacteristics([], (_err, characteristics) => {
                   characteristics.forEach((characteristic) => {
                     this._characteristics[characteristic.uuid] = characteristic;
                   });
@@ -122,10 +118,6 @@ export class NobleDevice extends EventEmitter {
         throw new Error(err);
       }
     });
-  }
-
-  public addToCharacteristicMailbox(uuid: string, data: Buffer) {
-    this._mailbox.push(data);
   }
 
   public readFromCharacteristic(

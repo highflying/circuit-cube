@@ -6,9 +6,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "clean": "rm -rf ./dist",
     "build": "tsc",
     "lint": "eslint",
-    "prepublishOnly": "npm run lint && npm run build"
+    "prepublishOnly": "npm run lint && npm run build && yarn typings",
+    "typings": "dts-bundle --name $npm_package_name --main ./dist/index.d.ts --out main.d.ts --removeSource"
   },
   "author": "Ben Rogers <ben@bdr.org>",
   "license": "MIT",
@@ -25,6 +27,8 @@
     "@typescript-eslint/parser": "5.54.0",
     "eslint-config-prettier": "8.6.0",
     "eslint-plugin-prettier": "4.2.1",
-    "prettier": "2.8.4"
+    "eslint": "8.35.0",
+    "prettier": "2.8.4",
+    "dts-bundle": "0.7.3"
   }
 }

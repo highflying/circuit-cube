@@ -1,5 +1,8 @@
 package-lock.json
+yarn.lock
 tsconfig.json
-tslint.json
 .vscode/
 examples/
+.eslintrc.js
+.git
+.gitignore
