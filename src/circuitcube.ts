@@ -12,13 +12,16 @@ export interface CircuitCubeDevice {
   setPower: (power: number | undefined) => Promise<void>;
   brake: () => Promise<void>;
   stop: () => Promise<void>;
+  type: 1;
+  typeName: "CIRCUIT_CUBE_PORT";
 }
+
+const MAX_VOLTAGE = 4.2;
 
 export class CircuitCube extends EventEmitter {
   private _timer: NodeJS.Timeout | undefined;
-  protected _name = "";
-  protected _batteryLevel = 100;
-  protected _bleDevice: NobleDevice;
+  private _batteryLevel = 4.2;
+  private _bleDevice: NobleDevice;
   private _levels: PowerLevels = [undefined, undefined, undefined];
 
   public static IsCircuitCube(peripheral: Peripheral) {
@@ -59,7 +62,7 @@ export class CircuitCube extends EventEmitter {
   }
 
   public get batteryLevel() {
-    return this._batteryLevel;
+    return Math.floor((this._batteryLevel / MAX_VOLTAGE) * 100);
   }
 
   public sleep(delay: number) {
@@ -99,19 +102,22 @@ export class CircuitCube extends EventEmitter {
 
     setupTimeout(1_000);
 
+    this.emit("connect");
+
     debug("Connect completed");
   }
 
-  public disconnect() {
+  public async disconnect() {
     if (this._timer) {
       clearTimeout(this._timer);
     }
 
-    return this._bleDevice.disconnect();
+    await this._bleDevice.disconnect();
+
+    this.emit("disconnect");
   }
 
   private _parseMessage(data?: Buffer) {
-    // console.log('message', data, data?.toString('ascii'));
     if (!data) {
       return;
     }
@@ -119,9 +125,9 @@ export class CircuitCube extends EventEmitter {
     if (data.byteLength === 1) {
       // "n?" should return a single byte 00 (success) or 01 (error)
       // "0" seems to also return a single byte 00
-      if (data.readInt8() === 0) {
-        this.getName();
-      }
+      // if (data.readInt8() === 0) {
+      //   this.getName();
+      // }
     } else if (data.byteLength === 4) {
       const level = Number(data.toString("utf-8"));
       if (!isNaN(level)) {
@@ -129,16 +135,17 @@ export class CircuitCube extends EventEmitter {
       }
     } else {
       // should be the device name
-      this._name = data.toString("ascii");
+      // this._name = data.toString("ascii");
+      // console.log(this._name);
     }
   }
 
   public getDeviceAtPort(port: "A" | "B" | "C"): CircuitCubeDevice {
     const stop = () => {
       const newLevels: PowerLevels = [
-        port === "A" ? undefined : this._levels[0],
-        port === "B" ? undefined : this._levels[1],
-        port === "C" ? undefined : this._levels[2],
+        port === "A" ? 0 : this._levels[0],
+        port === "B" ? 0 : this._levels[1],
+        port === "C" ? 0 : this._levels[2],
       ];
       return this.setPower(newLevels);
     };
@@ -154,6 +161,8 @@ export class CircuitCube extends EventEmitter {
       },
       brake: stop,
       stop,
+      type: 1,
+      typeName: "CIRCUIT_CUBE_PORT",
     };
   }
 
@@ -164,7 +173,7 @@ export class CircuitCube extends EventEmitter {
 
     const msg = levels
       .map((level, index) => {
-        return level !== undefined
+        return level !== undefined && level !== 0
           ? level < 0
             ? `${level}${levelMap[index]}`
             : `+${level}${levelMap[index]}`
@@ -172,6 +181,10 @@ export class CircuitCube extends EventEmitter {
       })
       .filter((cmd) => cmd !== undefined)
       .join("");
+
+    if (msg === "") {
+      return this.stopAll();
+    }
 
     const data = Buffer.from(msg, "utf-8");
     return this._bleDevice.writeToCharacteristic(

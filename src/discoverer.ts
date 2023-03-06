@@ -87,24 +87,22 @@ export class CircuitCubeDiscoverer extends EventEmitter {
       return;
     }
 
-    device.on("discoverComplete", () => {
-      hub.on("connect", () => {
-        debug(`Hub ${hub.uuid} connected`);
-        this._connectedHubs[hub.uuid] = hub;
-      });
-
-      hub.on("disconnect", () => {
-        debug(`Hub ${hub.uuid} disconnected`);
-        delete this._connectedHubs[hub.uuid];
-
-        if (wantScan) {
-          startScanning();
-        }
-      });
-
-      debug(`Hub ${hub.uuid} discovered`);
-
-      this.emit("discover", hub);
+    hub.on("connect", () => {
+      debug(`Hub ${hub.uuid} connected`);
+      this._connectedHubs[hub.uuid] = hub;
     });
+
+    hub.on("disconnect", () => {
+      debug(`Hub ${hub.uuid} disconnected`);
+      delete this._connectedHubs[hub.uuid];
+
+      if (wantScan) {
+        startScanning();
+      }
+    });
+
+    debug(`Hub ${hub.uuid} discovered`);
+
+    this.emit("discover", hub);
   }
 }
