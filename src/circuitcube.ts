@@ -6,11 +6,20 @@ import Debug = require("debug");
 import { NobleDevice } from "./nobleabstraction";
 const debug = Debug("circuitcube:hub");
 
+type PowerLevels = [number | undefined, number | undefined, number | undefined];
+
+export interface CircuitCubeDevice {
+  setPower: (power: number | undefined) => Promise<void>;
+  brake: () => Promise<void>;
+  stop: () => Promise<void>;
+}
+
 export class CircuitCube extends EventEmitter {
   private _timer: NodeJS.Timeout | undefined;
   protected _name = "";
   protected _batteryLevel = 100;
   protected _bleDevice: NobleDevice;
+  private _levels: PowerLevels = [undefined, undefined, undefined];
 
   public static IsCircuitCube(peripheral: Peripheral) {
     return (
@@ -124,9 +133,35 @@ export class CircuitCube extends EventEmitter {
     }
   }
 
+  public getDeviceAtPort(port: "A" | "B" | "C"): CircuitCubeDevice {
+    const stop = () => {
+      const newLevels: PowerLevels = [
+        port === "A" ? undefined : this._levels[0],
+        port === "B" ? undefined : this._levels[1],
+        port === "C" ? undefined : this._levels[2],
+      ];
+      return this.setPower(newLevels);
+    };
+
+    return {
+      setPower: (power: number) => {
+        const newLevels: PowerLevels = [
+          port === "A" ? power : this._levels[0],
+          port === "B" ? power : this._levels[1],
+          port === "C" ? power : this._levels[2],
+        ];
+        return this.setPower(newLevels);
+      },
+      brake: stop,
+      stop,
+    };
+  }
+
   public async setPower(
     levels: [number | undefined, number | undefined, number | undefined]
   ) {
+    this._levels = [levels[0], levels[1], levels[2]];
+
     const msg = levels
       .map((level, index) => {
         return level !== undefined
