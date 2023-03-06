@@ -14,6 +14,7 @@ export interface CircuitCubeDevice {
   stop: () => Promise<void>;
   type: 1;
   typeName: "CIRCUIT_CUBE_PORT";
+  hub: CircuitCube;
 }
 
 const MAX_VOLTAGE = 4.2;
@@ -163,6 +164,7 @@ export class CircuitCube extends EventEmitter {
       stop,
       type: 1,
       typeName: "CIRCUIT_CUBE_PORT",
+      hub: this,
     };
   }
 
